@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+<head>
+<title>DEV HalfEdge Mesh</title>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r78/three.js"></script>
+</head>
+<body>
+
+<script type="text/javascript" src="HEMesh.js"></script>
+<script>
+
+var WIDTH = window.innerWidth * 0.8;
+var HEIGHT = window.innerHeight * 0.8;
+
+var scene = new THREE.Scene();
+var camera = new THREE.PerspectiveCamera( 75, WIDTH/HEIGHT, 0.1, 1000 );
+
+var renderer = new THREE.WebGLRenderer();
+renderer.setSize( WIDTH, HEIGHT );
+document.body.appendChild( renderer.domElement );
+
+
+
+var geometry = new THREE.BoxGeometry( 1, 1, 1 );
+var material = new THREE.MeshBasicMaterial( {color: 0x00ff00} );
+var cube = new THREE.Mesh( geometry, material );
+
+var hemesh = HEMesh.fromThreeMesh(cube);
+console.log(hemesh);
+
+scene.add( cube );
+
+camera.position.z = 5;
+
+var render = function () {
+    requestAnimationFrame( render );
+
+    cube.rotation.x += 0.01;
+    cube.rotation.y += 0.01;
+
+    renderer.render(scene, camera);
+};
+
+render();
+
+</script>
+</body>
+</html>
