@@ -8,7 +8,7 @@ module.exports = (function() {
     // callback(current, initial, 
     function forEdges(callback) {
         if (!this.edge) {
-            FORGE.Util.error("Edgeless face detected.");
+            console.warn("Edgeless face detected.");
             return [];
         }
         this.edge.loopEdges(callback);
@@ -47,7 +47,7 @@ module.exports = (function() {
         });
 
         if (p.length != 3) {
-            FORGE.Util.error("non-triangular poly");
+            console.warn("non-triangular poly");
         }
 
         var sideVectors = [];

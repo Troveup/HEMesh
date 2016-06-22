@@ -283,7 +283,8 @@ var HEMesh =
 	        });
 
 	        // each iteration will detect one boundary and delete those edges from the hash
-	        FORGE.Util.iterateObj(boundaryEdges, function(edgeID, initial) {
+	        Object.keys(boundaryEdges).map(function(edgeID) {
+	            var initial = boundaryEdges[edgeID];
 	            var active = initial;
 	            delete boundaryEdges[initial.id];
 
@@ -320,17 +321,26 @@ var HEMesh =
 	        });
 	    };
 
+	    var extractProperty = function(obj) {
+	        var keys = Object.keys(obj);
+	        if (keys.length) {
+	            return keys[0];
+	        }
+	        return null;
+	    };
+
 	    var isManifold = function() {
 	        if (!this.vertices || !this.faces) { // hasn't hadk
 	            return false;
 	        }
-	        if (FORGE.Util.getProperty(this.frontier)) { // non-empty frontier means open edges
+	        
+	        if (extractProperty(this.frontier)) { // non-empty frontier means open edges
 	            return false;
 	        }
 	    };
 
 	    var getFrontierEdge = function() {
-	        var edgeID = FORGE.Util.getProperty(this.frontier);
+	        var edgeID = extractProperty(this.frontier);
 	        if (!edgeID) return null;
 	        return this.frontier[edgeID];
 	    }
@@ -338,7 +348,7 @@ var HEMesh =
 	    var iterateFrontier = function(callback) {
 	        var that = this;
 
-	        that.frontier = {};
+	        that.frontier = Object.create(null);
 	        var newEdgeIDs = [];
 	        var firstFace = that.faces[0].forEdges(function(edge) {
 	            that.frontier[edge.id] = edge;
@@ -353,9 +363,9 @@ var HEMesh =
 
 	        var counter = 1;
 	        var cutoff = that.faces * 3; // number of half edges
-	        while (!FORGE.Util.emptyObj(that.frontier)) {
+	        while (!extractProperty(that.frontier)) {
 	            if (counter++ >= cutoff) {
-	                FORGE.Util.error("Hit halfedge traversal iteration depth limit.");
+	                console.warn("Hit halfedge traversal iteration depth limit.");
 	                break;
 	            }
 
@@ -467,7 +477,7 @@ var HEMesh =
 	    // callback(current, initial, 
 	    function forEdges(callback) {
 	        if (!this.edge) {
-	            FORGE.Util.error("Edgeless face detected.");
+	            console.warn("Edgeless face detected.");
 	            return [];
 	        }
 	        this.edge.loopEdges(callback);
@@ -506,7 +516,7 @@ var HEMesh =
 	        });
 
 	        if (p.length != 3) {
-	            FORGE.Util.error("non-triangular poly");
+	            console.warn("non-triangular poly");
 	        }
 
 	        var sideVectors = [];
