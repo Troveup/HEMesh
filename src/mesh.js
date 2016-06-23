@@ -58,7 +58,7 @@ class HEMesh {
         }
     }
 
-    addArrowsToScene(scene, faceCount) {
+    generateFaceArrows(scene, faceCount) {
         this.faces.map(function(face, i) {
             if (faceCount && i >= faceCount) {
                 return;
@@ -68,8 +68,6 @@ class HEMesh {
                 scene.add( newArrow );
             });
         });
-        
-        // TODO: boundary arrows
     }
 
     // TODO: revisit this logic and integrate with updated format when addressing meshes with boundaries

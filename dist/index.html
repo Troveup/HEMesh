@@ -32,7 +32,7 @@ var material = new THREE.MeshBasicMaterial({
 var cube = new THREE.Mesh( geometry, material );
 var heMesh = new HEMesh();
 heMesh.parseGeometry(geometry);
-heMesh.addArrowsToScene( scene, 1 );
+heMesh.generateFaceArrows( scene, 0 );
 //var hemesh = HEMesh.fromThreeMesh(cube);
 //var processedThreeMesh = HEMesh.toThreeMesh(hemesh, scene, renderer, camera);
 

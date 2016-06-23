@@ -1,7 +1,7 @@
 
 class HEEdge {
     constructor(spec) {
-        this.id = spec.id;
+        //this.mapKey = spec.mapKey;
         this.vert = spec.vert; // vertex at the end of the half-edge
         this.twin = spec.twin; // oppositely oriented adjacent half-edge
         this.face = spec.face; // face the half-edge borders
@@ -21,39 +21,22 @@ class HEEdge {
             }
         } while (currEdge != this);
     }
+
+    generateBoundary() {
+        var vert = this.next.vert;
+        //var points = this.mapKey.split("::");
+        var boundaryEdge = create({
+            //mapKey: points[1]+"::"+points[0],
+            vert: vert,
+            twin: this
+        });
+
+        boundaryEdge.isBoundary = true;
+        this.twin = boundaryEdge;
+        delete this.isBoundary;
+        return boundaryEdge;
+    }
 }
 
 module.exports = HEEdge;
 
-/*module.exports = (function() {
-    var that = {};
-
-    // the passed seed edge must be a valid and consistent interior edge
-    // doesn't take care of prev/next refs in new boundary edge
-    var addBoundaryEdge = function(seedEdge) {
-        var vert = seedEdge.next.vert;
-        var points = seedEdge.id.split("::");
-        var boundaryEdge = create({
-            id: points[1]+"::"+points[0],
-            vert: vert,
-            twin: seedEdge
-        });
-
-        boundaryEdge.isBoundary = true;
-        seedEdge.twin = boundaryEdge;
-        delete seedEdge.isBoundary;
-        return boundaryEdge;
-    };
-
-    var edgeColors = {
-        interior: 0xff0000,
-        frontier: 0x00ff00,
-        boundary: 0x0000ff
-    }
-
-    that.colors = edgeColors;
-    that.create = create;
-    that.toString = toString;
-    that.addBoundaryEdge = addBoundaryEdge;
-    return that;
-})();*/
