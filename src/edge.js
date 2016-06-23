@@ -1,9 +1,16 @@
 
-module.exports = (function() {
-    var that = {};
+class HEEdge {
+    constructor(pos, edge) {
+        this.id = spec.id;
+        this.vert = spec.vert; // vertex at the end of the half-edge
+        this.twin = spec.twin; // oppositely oriented adjacent half-edge
+        this.face = spec.face; // face the half-edge borders
+        this.next = spec.next; // next half-edge around the face
+        this.prev = spec.prev; // next half-edge around the face
+    }
 
     // callback(currentEdge, initialEdge)
-    var loopEdges = function(callback) {
+    loopEdges(callback) {
         var currEdge = this;
         do {
             callback(currEdge, this);
@@ -13,20 +20,13 @@ module.exports = (function() {
                 return;
             }
         } while (currEdge != this);
-    };
+    }
+}
 
-    var create = function(spec) {
-        var edge = {};
-        edge.id = spec.id;
-        edge.vert = spec.vert; // vertex at the end of the half-edge
-        edge.twin = spec.twin; // oppositely oriented adjacent half-edge
-        edge.face = spec.face; // face the half-edge borders
-        edge.next = spec.next; // next half-edge around the face
-        edge.prev = spec.prev; // next half-edge around the face
+module.exports = HEEdge;
 
-        edge.loopEdges = loopEdges;
-        return edge;
-    };
+/*module.exports = (function() {
+    var that = {};
 
     // the passed seed edge must be a valid and consistent interior edge
     // doesn't take care of prev/next refs in new boundary edge
@@ -56,4 +56,4 @@ module.exports = (function() {
     that.toString = toString;
     that.addBoundaryEdge = addBoundaryEdge;
     return that;
-})();
+})();*/

@@ -5,7 +5,7 @@ var heEdge = require("./src/edge");
 var OrbitControls = require('three-orbit-controls')(THREE);
 THREE.OrbitControls = OrbitControls;
 
-module.exports = (function(){
+/*module.exports = (function(){
     var that = {};
 
     var fromThreeMesh = function(threeMesh) {
@@ -87,5 +87,5 @@ module.exports = (function(){
     that.fromThreeMesh = fromThreeMesh;
     that.toThreeMesh = toThreeMesh;
     return that;
-})();
+})();*/
 

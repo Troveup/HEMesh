@@ -30,10 +30,10 @@ var material = new THREE.MeshBasicMaterial({
 });
 var cube = new THREE.Mesh( geometry, material );
 
-var hemesh = HEMesh.fromThreeMesh(cube);
-var processedThreeMesh = HEMesh.toThreeMesh(hemesh, scene, renderer, camera);
+//var hemesh = HEMesh.fromThreeMesh(cube);
+//var processedThreeMesh = HEMesh.toThreeMesh(hemesh, scene, renderer, camera);
 
-scene.add( processedThreeMesh );
+scene.add( cube );
 
 var render = function () {
     requestAnimationFrame( render );

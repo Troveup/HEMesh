@@ -2,7 +2,12 @@
 var THREE = require("three");
 var heEdge = require("./edge");
 
-module.exports = (function() {
+class HEFace {
+    constructor(spec = {}) {
+        this.edge = spec.edge;
+    }
+}
+/*module.exports = (function() {
     var that = {};
 
     // callback(current, initial, 
@@ -27,18 +32,6 @@ module.exports = (function() {
         return new THREE.Mesh( geo, debugMaterial );
     };
 
-    var create = function (spec) {
-        var face = {},
-            spec = spec || {};
-
-        face.edge = spec.edge;
-        face.id = spec.originalIndex || null;
-
-        face.forEdges = forEdges;
-        face.dumpMeshTri = dumpMeshTri;
-        face.generateDebugEdges = generateDebugEdges;
-        return face;
-    }
 
     var generateDebugEdges = function(){
         var p = [];
@@ -82,4 +75,4 @@ module.exports = (function() {
 
     that.create = create;
     return that;
-})();
+})();*/

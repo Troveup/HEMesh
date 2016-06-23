@@ -1,15 +1,9 @@
 
-module.exports = (function(){
-    var that = {};
-
-    // generate a vertex from a THREE.Vector3 and an edge reference
-    var create = function (pos, edge) {
-        var vertex = {};
-        vertex.position = pos;
-        vertex.edge = edge;
-        return vertex;
+class HEVertex {
+    constructor(spec) {
+        this.position = spec.position;
+        this.edge = spec.edge;
     }
+}
 
-    that.create = create;
-    return that;
-})();
+module.exports = HEVertex;
