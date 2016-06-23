@@ -1,72 +1,79 @@
 
 var THREE = require("three");
 var HEVertex = require("./vertex");
-var heFace = require("./face");
-var heEdge = require("./edge");
+var HEFace = require("./face");
+var HEEdge = require("./edge");
 var EdgeMap = require("./edge-map.js");
 
 class HEMesh {
     // equivalent of the PersonType constructor
-    constructor(name) {
+    constructor() {
         this.faces = [];
         this.vertices = [];
-        this.edges = [];
+        this.edgeMap = new EdgeMap();
 
-        this.boundaries = [];
+        //this.boundaries = [];
     }
 
-    parseGeometry() {
-        var that = this;
-
-        var unmatched = new EdgeMap();
-
+    parseGeometry(geo) {
         this.vertices = geo.vertices.map(function(position) {
-            // may need to clone vector position
-            return new HEVertex({ position: position });
+            return new HEVertex({ position: position.clone() }); // clone might not be necessary
         });
 
+        // generate all the half-edges and faces, doesn't link twins
         for (var i = 0, nFaces = geo.faces.length; i < nFaces; i++) {
-
-            // package the 3 genVertices referenced in the THREE.Face in an array to keep number of sides general
             var f = geo.faces[i];
-            var faceVertices = [];
-            faceVertices.push(this.vertices[f.a]);
-            faceVertices.push(this.vertices[f.b]);
-            faceVertices.push(this.vertices[f.c]);
-
             var newFace = new HEFace();
-            var newEdges = faceVertices.map(function(v) {
-                var newEdge = heEdge.create({
-                    vert: v,
-                    face: newFace
-                });
-                v.edge = newEdge;
+
+            var verts = [
+                this.vertices[f.a],
+                this.vertices[f.b],
+                this.vertices[f.c]
+            ];
+            var newEdges = verts.map(function(faceVertex) {
+                var newEdge = new HEEdge({ vert: faceVertex, face: newFace });
+                faceVertex.edge = newEdge;
                 return newEdge;
             });
             newFace.edge = newEdges.length > 0 ? newEdges[0] : null;
             this.faces.push(newFace);
 
-            that.addEdge(f.a, f.b, newEdges[0]);
-            that.addEdge(f.b, f.c, newEdges[1]);
-            that.addEdge(f.c, f.a, newEdges[2]);
-
-            that.setEdgeTwin(f.b, f.a, newEdges[0]);
-            that.setEdgeTwin(f.c, f.b, newEdges[1]);
-            that.setEdgeTwin(f.a, f.c, newEdges[2]);
-
             for (var j = 0, nEdges = newEdges.length; j < nEdges; j++) {
                 newEdges[j].next = newEdges[(j+1)%nEdges];
                 newEdges[j].prev = newEdges[(j+nEdges-1)%nEdges];
             }
+
+            this.edgeMap.addEdge(f.a, f.b, newEdges[0]);
+            this.edgeMap.addEdge(f.b, f.c, newEdges[1]);
+            this.edgeMap.addEdge(f.c, f.a, newEdges[2]);
         }
 
-        // edges are addressed by their vertex indices from the original mesh
-        // leverage this to assign unique vertex identifiers and get similiar output mesh
-        genVertices.map(function(vert) {
-            var vertIndices = vert.edge.id.split("::");
-            vert.id = parseInt(vertIndices[0], 10);
-        });
+        // do linking after to simplify logic
+        for (i = 0, nFaces = geo.faces.length; i < nFaces; i++) {
+            var f = geo.faces[i];
 
+            this.edgeMap.linkEdgesBetween(f.a, f.b);
+            this.edgeMap.linkEdgesBetween(f.b, f.c);
+            this.edgeMap.linkEdgesBetween(f.c, f.a);
+        }
+    }
+
+    addArrowsToScene(scene, faceCount) {
+        this.faces.map(function(face, i) {
+            if (faceCount && i >= faceCount) {
+                return;
+            }
+
+            face.generateDebugArrows().map(function(newArrow){
+                scene.add( newArrow );
+            });
+        });
+        
+        // TODO: boundary arrows
+    }
+
+    // TODO: revisit this logic and integrate with updated format when addressing meshes with boundaries
+    /*handleBoundaries() {
         var boundaryEdges = {};
         Object.keys(that.frontier).map(function(edgeID) {
             var edge = that.frontier[edgeID];
@@ -95,12 +102,11 @@ class HEMesh {
 
             that.boundaries.push(initial);
         });
+    }*/
 
-
-    }
 
     // the twin of the passed heEdge points to a face outside of the frontier or boundary
-    expandFrontier(seedEdge) {
+    /*expandFrontier(seedEdge) {
         var that = this;
         var twin = seedEdge.twin;
         var newIDs = [];
@@ -122,9 +128,9 @@ class HEMesh {
             newEdgeIDs: newIDs,
             faceEdge: twin
         }
-    }
+    }*/
 
-    iterateFrontier(callback) {
+    /*iterateFrontier(callback) {
         var that = this;
 
         var newEdgeIDs = [];
@@ -152,16 +158,18 @@ class HEMesh {
             expansion = that.expandFrontier(edge);
             callback(expansion);
         }
-    }
+    }*/
 
-    getFrontierEdge() {}
+    /*getFrontierEdge() {}
     addEdge() {}
     setEdgeTwin() {}
     getEdge() {}
     removeFrontier() {}
     isManifold() {}
-    fillHoles() {}
+    fillHoles() {}*/
 }
+
+module.exports = HEMesh;
 
 /*module.exports = (function(){
     var that = {};

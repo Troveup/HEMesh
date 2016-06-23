@@ -21,6 +21,15 @@ class EdgeMap {
         delete this.edges[key]
     }
 
+    // TODO: set edge as boundary if twin doesn't exist (or create boundary edge to be connected later
+    linkEdgesBetween(u, v) {
+        var edge0 = this.getEdge(u, v);
+        var edge1 = this.getEdge(v, u);
+
+        edge0.twin = edge1;
+        edge1.twin = edge0;
+    }
+
     pickEdge() {
         var keys = Object.keys(this.edges);
         if (keys.length) {
@@ -29,6 +38,7 @@ class EdgeMap {
 
         return null;
     }
+
 }
 
 module.exports = EdgeMap;

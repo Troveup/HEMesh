@@ -24,12 +24,15 @@ renderer.setSize( WIDTH, HEIGHT );
 document.body.appendChild( renderer.domElement );
 
 var geometry = new THREE.BoxGeometry( 1, 1, 1 );
+// var geometry = new THREE.PlaneGeometry( 2, 2, 1 );
 var material = new THREE.MeshBasicMaterial({
     wireframe: true,
     color: 0x00ff00
 });
 var cube = new THREE.Mesh( geometry, material );
-
+var heMesh = new HEMesh();
+heMesh.parseGeometry(geometry);
+heMesh.addArrowsToScene( scene, 1 );
 //var hemesh = HEMesh.fromThreeMesh(cube);
 //var processedThreeMesh = HEMesh.toThreeMesh(hemesh, scene, renderer, camera);
 

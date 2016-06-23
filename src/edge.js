@@ -1,6 +1,6 @@
 
 class HEEdge {
-    constructor(pos, edge) {
+    constructor(spec) {
         this.id = spec.id;
         this.vert = spec.vert; // vertex at the end of the half-edge
         this.twin = spec.twin; // oppositely oriented adjacent half-edge
