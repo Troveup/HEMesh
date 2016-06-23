@@ -39,6 +39,13 @@ class EdgeMap {
         return null;
     }
 
+    /*var extractProperty = function(obj) {
+        var keys = Object.keys(obj);
+        if (keys.length) {
+            return keys[0];
+        }
+        return null;
+    };*/
 }
 
 module.exports = EdgeMap;
