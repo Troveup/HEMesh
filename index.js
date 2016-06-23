@@ -2,6 +2,8 @@
 var THREE = require("three");
 var heMesh = require("./src/mesh");
 var heEdge = require("./src/edge");
+var OrbitControls = require('three-orbit-controls')(THREE);
+THREE.OrbitControls = OrbitControls;
 
 module.exports = (function(){
     var that = {};
@@ -39,7 +41,7 @@ module.exports = (function(){
                 }
                 scene.add(edge.arrow);
             });
-            FORGE.Scene.triggerRender();
+            //renderer.render(scene, camera);
         });
 
         geo.computeBoundingSphere();

@@ -17,9 +17,9 @@ module.exports = (function(){
         return new THREE.Mesh( geometry, material );
     };
 
-    var catFaceGeo = function(face, geo) {
+    var catFaceGeo = function(heface, geo) {
         var index = geo.vertices.length;
-        face.forEdges(function(edge, initial){
+        heface.forEdges(function(edge, initial){
             geo.vertices.push(edge.vert.position);
         });
 
@@ -27,7 +27,6 @@ module.exports = (function(){
         var b = index++;
         var c = index++;
         geo.faces.push( new THREE.Face3(a,b,c) );
-
     };
 
     that.catFaceGeo = catFaceGeo;
