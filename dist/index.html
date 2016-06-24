@@ -30,13 +30,23 @@ var material = new THREE.MeshBasicMaterial({
     color: 0x00ff00
 });
 var cube = new THREE.Mesh( geometry, material );
-var heMesh = new HEMesh();
+var heMesh = new HEMesh.HEMesh();
 heMesh.parseGeometry(geometry);
 heMesh.generateFaceArrows( scene, 0 );
+
+var iterativeMat = new THREE.MeshBasicMaterial({
+    color: 0x0000ff
+});
+var iterativeGeo = new THREE.Geometry();
+heMesh.iterateFrontier(function(expansion) {
+    HEMesh.HEDebug.catFaceGeo(expansion.face, iterativeGeo);
+}, 4);
+var iterativeMesh = new THREE.Mesh( iterativeGeo, iterativeMat );
 //var hemesh = HEMesh.fromThreeMesh(cube);
 //var processedThreeMesh = HEMesh.toThreeMesh(hemesh, scene, renderer, camera);
 
 scene.add( cube );
+scene.add( iterativeMesh );
 
 var render = function () {
     requestAnimationFrame( render );

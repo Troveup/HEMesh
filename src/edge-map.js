@@ -4,9 +4,16 @@ class EdgeMap {
         this.edges = Object.create(null);
     }
  
-    addEdge(u, v, edge) {
+    setEdge(u, v, edge) {
         var key = u+"::"+v;
         edge.id = key; // ?
+        this.edges[key] = edge;
+    };
+
+    // precondition: all edge.twin and edge.vert references in mesh are valid
+    addEdge(edge) {
+        var key = edge.calcKey();
+        edge.id = key;
         this.edges[key] = edge;
     };
 
@@ -39,13 +46,6 @@ class EdgeMap {
         return null;
     }
 
-    /*var extractProperty = function(obj) {
-        var keys = Object.keys(obj);
-        if (keys.length) {
-            return keys[0];
-        }
-        return null;
-    };*/
 }
 
 module.exports = EdgeMap;

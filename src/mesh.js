@@ -10,18 +10,18 @@ class HEMesh {
     constructor() {
         this.faces = [];
         this.vertices = [];
-        this.edgeMap = new EdgeMap();
+        this.edges = [];
         //this.boundaries = [];
     }
 
     parseGeometry(geo) {
-        this.vertices = geo.vertices.map(function(position) {
-            return new HEVertex({ position: position.clone() }); // clone might not be necessary
+        var unmatched = new EdgeMap();
+        this.vertices = geo.vertices.map(function(position, i) {
+            return new HEVertex({ position: position.clone(), index: i }); // clone might not be necessary
         });
 
         // generate all the half-edges and faces, doesn't link twins
-        for (var i = 0, nFaces = geo.faces.length; i < nFaces; i++) {
-            var f = geo.faces[i];
+        geo.faces.map(function(f, i) {
             var newFace = new HEFace();
 
             var verts = [
@@ -29,11 +29,14 @@ class HEMesh {
                 this.vertices[f.b],
                 this.vertices[f.c]
             ];
+
             var newEdges = verts.map(function(faceVertex) {
                 var newEdge = new HEEdge({ vert: faceVertex, face: newFace });
                 faceVertex.edge = newEdge;
+                this.edges.push(newEdge);
                 return newEdge;
-            });
+            }.bind(this));
+
             newFace.edge = newEdges.length > 0 ? newEdges[0] : null;
             this.faces.push(newFace);
 
@@ -42,19 +45,17 @@ class HEMesh {
                 newEdges[j].prev = newEdges[(j+nEdges-1)%nEdges];
             }
 
-            this.edgeMap.addEdge(f.a, f.b, newEdges[0]);
-            this.edgeMap.addEdge(f.b, f.c, newEdges[1]);
-            this.edgeMap.addEdge(f.c, f.a, newEdges[2]);
-        }
+            unmatched.setEdge(f.a, f.b, newEdges[0]);
+            unmatched.setEdge(f.b, f.c, newEdges[1]);
+            unmatched.setEdge(f.c, f.a, newEdges[2]);
+        }.bind(this));
 
         // do linking after to simplify logic
-        for (i = 0, nFaces = geo.faces.length; i < nFaces; i++) {
-            var f = geo.faces[i];
-
-            this.edgeMap.linkEdgesBetween(f.a, f.b);
-            this.edgeMap.linkEdgesBetween(f.b, f.c);
-            this.edgeMap.linkEdgesBetween(f.c, f.a);
-        }
+        geo.faces.map(function(f) {
+            unmatched.linkEdgesBetween(f.a, f.b);
+            unmatched.linkEdgesBetween(f.b, f.c);
+            unmatched.linkEdgesBetween(f.c, f.a);
+        });
     }
 
     generateFaceArrows(scene, faceCount) {
@@ -69,103 +70,85 @@ class HEMesh {
         });
     }
 
-    // TODO: revisit this logic and integrate with updated format when addressing meshes with boundaries
-    /*handleBoundaries() {
-        var boundaryEdges = {};
-        Object.keys(that.frontier).map(function(edgeID) {
-            var edge = that.frontier[edgeID];
-            var newBoundEdge = heEdge.addBoundaryEdge(edge);
-            boundaryEdges[newBoundEdge.id] = newBoundEdge;
-            that.removeFrontier(edge);
-        });
-
-        // each iteration will detect one boundary and delete those edges from the hash
-        Object.keys(boundaryEdges).map(function(edgeID) {
-            var initial = boundaryEdges[edgeID];
-            var active = initial;
-            delete boundaryEdges[initial.id];
-
-            do { // loop around boundary connecting next and prev, deleting from boundaryEdges
-                var current = active.twin;
-                do { // pivot around the vertex the active half edge is pointed at
-                    current = current.prev.twin;
-                } while (!current.isBoundary);
-                active.next = current;
-                current.prev = active;
-
-                delete boundaryEdges[active.id];
-                active = current;
-            } while (active.next != initial);
-
-            that.boundaries.push(initial);
-        });
-    }*/
-
-    // the twin of the passed heEdge points to a face outside of the frontier or boundary
-    /*expandFrontier(seedEdge) {
+    iterateFrontier(callback, cutoff = 1) {
         var that = this;
-        var twin = seedEdge.twin;
-        var newIDs = [];
-        twin.loopEdges(function(edge, initial){
-            if (edge == initial) return;
 
-            // if we've run up against a face within the boundary, prune the edge that would cancel
-            // the edge we were about to add, plus the far vertex is already on the boundary
-            if (that.frontier[edge.twin.id]) {
-                that.removeFrontier(edge.twin);
-            } else { // otherwise, this edge on the absorbed face is 
-                newIDs.push(edge.id);
-                that.frontier[edge.id] = edge;
+        var frontier = Object.create(null);
+
+        function fetchFrontierCandidate() {
+            var keys = Object.keys(frontier);
+            if (keys.length) {
+                return frontier[keys[0]];
             }
-        });
-
-        that.removeFrontier(seedEdge);
-        return {
-            newEdgeIDs: newIDs,
-            faceEdge: twin
+            return null;
         }
-    }*/
 
-    /*
-    iterateFrontier(callback) {
-        var that = this;
-
-        var newEdgeIDs = [];
-        that.frontier = Object.create(null);
-        that.faces[0].forEdges(function(edge) {
-            that.frontier[edge.id] = edge;
-            newEdgeIDs.push(edge.id);
+        // add edges from the initial seed face
+        var newEdges = this.faces[0].edge.loopEdges(function(edge) {
+            frontier[edge.id] = edge;
         });
 
-        var expansion = {
-            newEdgeIDs: newEdgeIDs,
-            faceEdge: that.faces[0].edge
-        };
-        callback(expansion);
+        callback({
+            face: this.faces[0],
+            newEdges: newEdges
+        });
 
         var counter = 1;
-        var cutoff = that.faces * 3; // number of half edges
-        while (!extractProperty(that.frontier)) {
+        var focusEdge = fetchFrontierCandidate();
+        while (focusEdge) {
             if (counter++ >= cutoff) {
                 console.warn("Hit halfedge traversal iteration depth limit.");
                 break;
             }
 
-            var edge = that.getFrontierEdge();
-            expansion = that.expandFrontier(edge);
-            callback(expansion);
-        }
+            newEdges = [];
+            focusEdge.twin.loopEdges(function(edge, initial){
+                if (edge == initial) return;
+                newEdges.push(edge);
+            });
+            delete frontier[focusEdge.id]
 
-    var removeFrontier = function(edge) {
-        if (!this.frontier[edge.id]) return; // check shouldn't be necessary if invariants hold
-        if (edge.arrow) {
-            edge.arrow.setColor( heEdge.colors.interior );
+            callback({
+                newEdges: newEdges,
+                face: focusEdge.twin.face
+            });
+            focusEdge = fetchFrontierCandidate();
         }
-        delete this.frontier[edge.id];
     }
-
-    }*/
 }
 
 module.exports = HEMesh;
 
+
+// TODO: revisit this logic and integrate with updated format when addressing meshes with boundaries
+/*
+handleBoundaries() {
+    var boundaryEdges = {};
+    Object.keys(that.frontier).map(function(edgeID) {
+        var edge = that.frontier[edgeID];
+        var newBoundEdge = heEdge.addBoundaryEdge(edge);
+        boundaryEdges[newBoundEdge.id] = newBoundEdge;
+        that.removeFrontier(edge);
+    });
+
+    // each iteration will detect one boundary and delete those edges from the hash
+    Object.keys(boundaryEdges).map(function(edgeID) {
+        var initial = boundaryEdges[edgeID];
+        var active = initial;
+        delete boundaryEdges[initial.id];
+
+        do { // loop around boundary connecting next and prev, deleting from boundaryEdges
+            var current = active.twin;
+            do { // pivot around the vertex the active half edge is pointed at
+                current = current.prev.twin;
+            } while (!current.isBoundary);
+            active.next = current;
+            current.prev = active;
+
+            delete boundaryEdges[active.id];
+            active = current;
+        } while (active.next != initial);
+
+        that.boundaries.push(initial);
+    });
+}*/

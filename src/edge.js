@@ -9,15 +9,21 @@ class HEEdge {
         this.prev = spec.prev; // next half-edge around the face
     }
 
+    // precondition: all edge.twin and edge.vert references in mesh are valid
+    calcKey() {
+        return this.vert.index + "::" + this.twin.vert.index;
+    }
+
     // callback(currentEdge, initialEdge)
     loopEdges(callback) {
         var currEdge = this;
+        var results = [];
         do {
-            callback(currEdge, this);
+            results.push(callback(currEdge, this));
             currEdge = currEdge.next;
             if (!currEdge) {
                 console.warn("Broken edge loop around a face or boundary.");
-                return;
+                return results;
             }
         } while (currEdge != this);
     }

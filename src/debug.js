@@ -19,7 +19,7 @@ module.exports = (function(){
 
     var catFaceGeo = function(heface, geo) {
         var index = geo.vertices.length;
-        heface.forEdges(function(edge, initial){
+        heface.edge.loopEdges(function(edge, initial){
             geo.vertices.push(edge.vert.position);
         });
 

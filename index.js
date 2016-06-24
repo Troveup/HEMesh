@@ -2,11 +2,12 @@
 var THREE = require("three");
 var HEMesh = require("./src/mesh");
 //var HEEdge = require("./src/edge");
+var HEDebug = require("./src/debug.js");
 
 var OrbitControls = require('three-orbit-controls')(THREE);
 THREE.OrbitControls = OrbitControls;
 
-module.exports = HEMesh;
+module.exports = { HEMesh, HEDebug };
 
 /*module.exports = (function(){
     var that = {};
