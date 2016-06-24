@@ -26,6 +26,7 @@ class HEEdge {
                 return results;
             }
         } while (currEdge != this);
+        return results;
     }
 
     generateBoundary() {

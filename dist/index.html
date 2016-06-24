@@ -23,27 +23,38 @@ var renderer = new THREE.WebGLRenderer();
 renderer.setSize( WIDTH, HEIGHT );
 document.body.appendChild( renderer.domElement );
 
-var geometry = new THREE.BoxGeometry( 1, 1, 1 );
 // var geometry = new THREE.PlaneGeometry( 2, 2, 1 );
 var material = new THREE.MeshBasicMaterial({
     wireframe: true,
     color: 0x00ff00
 });
-var cube = new THREE.Mesh( geometry, material );
-var heMesh = new HEMesh.HEMesh();
-heMesh.parseGeometry(geometry);
-heMesh.generateFaceArrows( scene, 0 );
-
 var iterativeMat = new THREE.MeshBasicMaterial({
     color: 0x0000ff
 });
+
+
+var geometry = new THREE.BoxGeometry( 1, 1, 1 );
+var cube = new THREE.Mesh( geometry, material );
 var iterativeGeo = new THREE.Geometry();
-heMesh.iterateFrontier(function(expansion) {
-    HEMesh.HEDebug.catFaceGeo(expansion.face, iterativeGeo);
-}, 4);
+
+var heMesh = new HEMesh.HEMesh();
+heMesh.parseGeometry(geometry);
+heMesh.generateFaceArrows( scene, 0 );
+var iterator = heMesh.iterateFrontier(2);
+
+var expansion = iterator.next();
+while (!expansion.done) {
+    console.log(expansion.value);
+
+    HEMesh.HEDebug.catFaceGeo(expansion.value.face, iterativeGeo);
+
+    expansion = iterator.next();
+    if (expansion.done) {
+        console.log("terminal value: ", expansion.value);
+    }
+}
+
 var iterativeMesh = new THREE.Mesh( iterativeGeo, iterativeMat );
-//var hemesh = HEMesh.fromThreeMesh(cube);
-//var processedThreeMesh = HEMesh.toThreeMesh(hemesh, scene, renderer, camera);
 
 scene.add( cube );
 scene.add( iterativeMesh );

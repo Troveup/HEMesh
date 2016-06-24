@@ -70,7 +70,7 @@ class HEMesh {
         });
     }
 
-    iterateFrontier(callback, cutoff = 1) {
+    *iterateFrontier() {
         var that = this;
 
         var frontier = Object.create(null);
@@ -86,21 +86,16 @@ class HEMesh {
         // add edges from the initial seed face
         var newEdges = this.faces[0].edge.loopEdges(function(edge) {
             frontier[edge.id] = edge;
+            return edge;
         });
 
-        callback({
+        yield {
             face: this.faces[0],
             newEdges: newEdges
-        });
+        };
 
-        var counter = 1;
         var focusEdge = fetchFrontierCandidate();
         while (focusEdge) {
-            if (counter++ >= cutoff) {
-                console.warn("Hit halfedge traversal iteration depth limit.");
-                break;
-            }
-
             newEdges = [];
             focusEdge.twin.loopEdges(function(edge, initial){
                 if (edge == initial) return;
@@ -108,47 +103,47 @@ class HEMesh {
             });
             delete frontier[focusEdge.id]
 
-            callback({
-                newEdges: newEdges,
-                face: focusEdge.twin.face
-            });
+            yield {
+                face: focusEdge.twin.face,
+                newEdges: newEdges
+            };
+
             focusEdge = fetchFrontierCandidate();
         }
+    }
+
+    // TODO: revisit this logic and integrate with updated format when addressing meshes with boundaries
+    handleBoundaries() {
+        var boundaryEdges = {};
+        Object.keys(that.frontier).map(function(edgeID) {
+            var edge = that.frontier[edgeID];
+            var newBoundEdge = heEdge.addBoundaryEdge(edge);
+            boundaryEdges[newBoundEdge.id] = newBoundEdge;
+            that.removeFrontier(edge);
+        });
+
+        // each iteration will detect one boundary and delete those edges from the hash
+        Object.keys(boundaryEdges).map(function(edgeID) {
+            var initial = boundaryEdges[edgeID];
+            var active = initial;
+            delete boundaryEdges[initial.id];
+
+            do { // loop around boundary connecting next and prev, deleting from boundaryEdges
+                var current = active.twin;
+                do { // pivot around the vertex the active half edge is pointed at
+                    current = current.prev.twin;
+                } while (!current.isBoundary);
+                active.next = current;
+                current.prev = active;
+
+                delete boundaryEdges[active.id];
+                active = current;
+            } while (active.next != initial);
+
+            that.boundaries.push(initial);
+        });
     }
 }
 
 module.exports = HEMesh;
 
-
-// TODO: revisit this logic and integrate with updated format when addressing meshes with boundaries
-/*
-handleBoundaries() {
-    var boundaryEdges = {};
-    Object.keys(that.frontier).map(function(edgeID) {
-        var edge = that.frontier[edgeID];
-        var newBoundEdge = heEdge.addBoundaryEdge(edge);
-        boundaryEdges[newBoundEdge.id] = newBoundEdge;
-        that.removeFrontier(edge);
-    });
-
-    // each iteration will detect one boundary and delete those edges from the hash
-    Object.keys(boundaryEdges).map(function(edgeID) {
-        var initial = boundaryEdges[edgeID];
-        var active = initial;
-        delete boundaryEdges[initial.id];
-
-        do { // loop around boundary connecting next and prev, deleting from boundaryEdges
-            var current = active.twin;
-            do { // pivot around the vertex the active half edge is pointed at
-                current = current.prev.twin;
-            } while (!current.isBoundary);
-            active.next = current;
-            current.prev = active;
-
-            delete boundaryEdges[active.id];
-            active = current;
-        } while (active.next != initial);
-
-        that.boundaries.push(initial);
-    });
-}*/
