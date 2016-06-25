@@ -7,11 +7,15 @@ var EdgeMap = require("./edge-map.js");
 
 class HEMesh {
 
-    constructor() {
+    constructor(spec) {
         this.faces = [];
         this.vertices = [];
         this.edges = [];
         //this.boundaries = [];
+
+        if (spec.geometry) {
+            this.parseGeometry(spec.geometry);
+        }
     }
 
     parseGeometry(geo) {
@@ -99,7 +103,10 @@ class HEMesh {
             newEdges = [];
             focusEdge.twin.loopEdges(function(edge, initial){
                 if (edge == initial) return;
-
+                
+                // TODO: if an edge in an expansion face is adjacent to frontier,
+                // then the frontier has folded in on itself and neither edge
+                // should remain in it
                 if (frontier[edge.twin.id]) {
                     delete frontier[edge.twin.id]
                     return;
@@ -117,6 +124,7 @@ class HEMesh {
 
             focusEdge = fetchFrontierCandidate();
         }
+        return 'dummy terminal value for logic checking';
     }
 
     // TODO: revisit this logic and integrate with updated format when addressing meshes with boundaries

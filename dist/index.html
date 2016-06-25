@@ -37,16 +37,21 @@ var geometry = new THREE.BoxGeometry( 1, 1, 1 );
 var cube = new THREE.Mesh( geometry, material );
 var iterativeGeo = new THREE.Geometry();
 
-var heMesh = new HEMesh.HEMesh();
-heMesh.parseGeometry(geometry);
+var heMesh = new HEMesh({ geometry: geometry });
 heMesh.generateFaceArrows( scene, 0 );
 var iterator = heMesh.iterateFrontier(2);
 
 var expansion = iterator.next();
 while (!expansion.done) {
-    console.log(expansion.value);
+    var index = iterativeGeo.vertices.length;
+    expansion.value.face.edge.loopEdges(function(edge, initial){
+        iterativeGeo.vertices.push(edge.vert.position);
+    });
 
-    HEMesh.HEDebug.catFaceGeo(expansion.value.face, iterativeGeo);
+    var a = index++;
+    var b = index++;
+    var c = index++;
+    iterativeGeo.faces.push( new THREE.Face3(a,b,c) );
 
     expansion = iterator.next();
     if (expansion.done) {
