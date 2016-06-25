@@ -99,6 +99,13 @@ class HEMesh {
             newEdges = [];
             focusEdge.twin.loopEdges(function(edge, initial){
                 if (edge == initial) return;
+
+                if (frontier[edge.twin.id]) {
+                    delete frontier[edge.twin.id]
+                    return;
+                }
+
+                frontier[edge.id] = edge;
                 newEdges.push(edge);
             });
             delete frontier[focusEdge.id]
