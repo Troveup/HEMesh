@@ -33,25 +33,36 @@ var iterativeMat = new THREE.MeshBasicMaterial({
 });
 
 
-var geometry = new THREE.BoxGeometry( 1, 1, 1 );
-var cube = new THREE.Mesh( geometry, material );
+var seedGeom = new THREE.BoxGeometry( 1, 1, 1 );
+var cube = new THREE.Mesh( seedGeom, material );
 var iterativeGeo = new THREE.Geometry();
 
-var heMesh = new HEMesh({ geometry: geometry });
+console.log(seedGeom.vertices);
+console.log(seedGeom.faces);
+
+var heMesh = new HEMesh({ geometry: seedGeom });
 heMesh.generateFaceArrows( scene, 0 );
-var iterator = heMesh.iterateFrontier(2);
+var iterator = heMesh.iterateFrontier();
+
+var useFaceFragments = true;
+
+if (!useFaceFragments) {
+    iterativeGeo.vertices = heMesh.vertices.map(function(v) {
+        return v;
+    });
+}
+
+console.log(iterativeGeo.vertices);
 
 var expansion = iterator.next();
 while (!expansion.done) {
-    var index = iterativeGeo.vertices.length;
-    expansion.value.face.edge.loopEdges(function(edge, initial){
-        iterativeGeo.vertices.push(edge.vert.position);
-    });
 
-    var a = index++;
-    var b = index++;
-    var c = index++;
-    iterativeGeo.faces.push( new THREE.Face3(a,b,c) );
+
+    if (useFaceFragments) {
+        addSeparateFaceToGeometry(expansion.value.face, iterativeGeo);
+    } else {
+        addFaceToGeometry(expansion.value.face, iterativeGeo);
+    }
 
     expansion = iterator.next();
     if (expansion.done) {
@@ -59,8 +70,31 @@ while (!expansion.done) {
     }
 }
 
+function addSeparateFaceToGeometry(face, geo) {
+    var index = geo.vertices.length;
+    face.edge.loopEdges(function(edge, initial){
+        geo.vertices.push(edge.vert.position);
+    });
+
+    var a = index++;
+    var b = index++;
+    var c = index++;
+    geo.faces.push( new THREE.Face3(a,b,c) );
+}
+
+function addFaceToGeometry(face, geo) {
+    var f = face.edge.loopEdges(function(edge){
+        return edge.vert.index;
+    });
+    geo.faces.push( new THREE.Face3(f[0], f[1], f[2]) );
+
+}
+console.log(iterativeGeo.faces);
+
 var iterativeMesh = new THREE.Mesh( iterativeGeo, iterativeMat );
 
+var axisHelper = new THREE.AxisHelper( 5 );
+scene.add( axisHelper );
 scene.add( cube );
 scene.add( iterativeMesh );
 
