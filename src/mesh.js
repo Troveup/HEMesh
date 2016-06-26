@@ -11,10 +11,12 @@ class HEMesh {
         this.faces = [];
         this.vertices = [];
         this.edges = [];
-        //this.boundaries = [];
+        this.boundaryEdges = {};
+        this.boundaries = [];
 
         if (spec.geometry) {
             this.parseGeometry(spec.geometry);
+            this.handleBoundaries();
         }
     }
 
@@ -56,10 +58,19 @@ class HEMesh {
 
         // do linking after to simplify logic
         geo.faces.map(function(f) {
-            unmatched.linkEdgesBetween(f.a, f.b, HEEdge);
-            unmatched.linkEdgesBetween(f.b, f.c, HEEdge);
-            unmatched.linkEdgesBetween(f.c, f.a, HEEdge);
-        });
+            var b1 = unmatched.linkEdgesBetween(f.a, f.b, HEEdge);
+            var b2 = unmatched.linkEdgesBetween(f.b, f.c, HEEdge);
+            var b3 = unmatched.linkEdgesBetween(f.c, f.a, HEEdge);
+            if (b1) {
+                this.boundaryEdges[b1.id] = b1;
+            }
+            if (b2) {
+                this.boundaryEdges[b2.id] = b2;
+            }
+            if (b3) {
+                this.boundaryEdges[b3.id] = b3;
+            }
+        }.bind(this));
     }
 
     generateFaceArrows(scene, faceCount) {
@@ -141,36 +152,29 @@ class HEMesh {
         return 'dummy terminal value for logic checking';
     }
 
-    // TODO: revisit this logic and integrate with updated format when addressing meshes with boundaries
     handleBoundaries() {
-        var boundaryEdges = {};
-        Object.keys(that.frontier).map(function(edgeID) {
-            var edge = that.frontier[edgeID];
-            var newBoundEdge = heEdge.addBoundaryEdge(edge);
-            boundaryEdges[newBoundEdge.id] = newBoundEdge;
-            that.removeFrontier(edge);
-        });
+        Object.keys(this.boundaryEdges).map(function(edgeID) {
+            var initial = this.boundaryEdges[edgeID];
+            if (!initial) {
+                return;
+            }
 
-        // each iteration will detect one boundary and delete those edges from the hash
-        Object.keys(boundaryEdges).map(function(edgeID) {
-            var initial = boundaryEdges[edgeID];
             var active = initial;
-            delete boundaryEdges[initial.id];
-
             do { // loop around boundary connecting next and prev, deleting from boundaryEdges
-                var current = active.twin;
-                do { // pivot around the vertex the active half edge is pointed at
-                    current = current.prev.twin;
-                } while (!current.isBoundary);
-                active.next = current;
-                current.prev = active;
+                // pivot around the vertex the active half edge is pointed at
+                var internal = active.twin.prev;
+                while (!internal.twin.isBoundary) {
+                    internal = internal.twin.prev;
+                }
+                active.next = internal.twin;
+                internal.twin.prev = active;
 
-                delete boundaryEdges[active.id];
-                active = current;
+                delete this.boundaryEdges[active.id];
+                active = internal.twin;
             } while (active.next != initial);
 
-            that.boundaries.push(initial);
-        });
+            this.boundaries.push(initial);
+        }.bind(this));
     }
 }
 

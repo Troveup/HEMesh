@@ -108,11 +108,9 @@ function stepIterator(iterator, geometry, duplicateVertices) {
 
     expansion.value.newEdges.map(function(newFrontierEdge){
         newFrontierEdge.arrow.setColor( frontierColor );
-        // console.log("new edge: ", newFrontierEdge);
     });
     expansion.value.closedEdges.map(function(closedEdge){
         closedEdge.arrow.setColor( interiorColor );
-        // console.log("closed edge: ", closedEdge);
     });
 
     if (duplicateVertices) {

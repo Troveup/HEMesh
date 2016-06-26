@@ -38,17 +38,24 @@ class EdgeMap {
             return;
         }
 
+        var boundaryEdge = null;
         if (!edge0) {
             edge0 = new edgeClass({ vert: edge1.next.vert });
             edge0.isBoundary = true;
+            boundaryEdge = edge0;
+            this.setEdge(edge1.next.vert.index, edge1.vert.index, edge0);
         }
+
         if (!edge1) {
             edge1 = new edgeClass({ vert: edge0.next.vert });
             edge1.isBoundary = true;
+            boundaryEdge = edge1;
+            this.setEdge(edge0.next.vert.index, edge0.vert.index, edge1);
         }
 
         edge0.twin = edge1;
         edge1.twin = edge0;
+        return boundaryEdge;
     }
 
     pickEdge() {
