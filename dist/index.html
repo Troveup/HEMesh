@@ -31,6 +31,10 @@ var iterativeMat = new THREE.MeshBasicMaterial({
     color: 0x0000ff
 });
 
+var interiorColor = new THREE.Color( 0xff0000 );
+var frontierColor = new THREE.Color( 0x00ff00 );
+var boundaryColor = new THREE.Color( 0x0000ff );
+
 var seedGeom = new THREE.BoxGeometry( 1, 1, 1 );
 var cube = new THREE.Mesh( seedGeom, material );
 testHalfEdge( scene );
@@ -100,6 +104,15 @@ function stepIterator(iterator, geometry, duplicateVertices) {
         console.log("terminal value: ", expansion.value);
         return expansion;
     }
+
+    expansion.value.newEdges.map(function(newFrontierEdge){
+        newFrontierEdge.arrow.setColor( frontierColor );
+        // console.log("new edge: ", newFrontierEdge);
+    });
+    expansion.value.closedEdges.map(function(closedEdge){
+        closedEdge.arrow.setColor( interiorColor );
+        // console.log("closed edge: ", closedEdge);
+    });
 
     if (duplicateVertices) {
         addSeparateFaceToGeometry(expansion.value.face, geometry);

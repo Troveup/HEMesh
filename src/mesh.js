@@ -92,15 +92,18 @@ class HEMesh {
             frontier[edge.id] = edge;
             return edge;
         });
+        var closedEdges = [];
 
         yield {
             face: this.faces[0],
-            newEdges: newEdges
+            newEdges: newEdges,
+            closedEdges: closedEdges
         };
 
         var focusEdge = fetchFrontierCandidate();
         while (focusEdge) {
             newEdges = [];
+            closedEdges = [];
             focusEdge.twin.loopEdges(function(edge, initial){
                 if (edge == initial) return;
                 
@@ -108,6 +111,7 @@ class HEMesh {
                 // then the frontier has folded in on itself and neither edge
                 // should remain in it
                 if (frontier[edge.twin.id]) {
+                    closedEdges.push(frontier[edge.twin.id]);
                     delete frontier[edge.twin.id]
                     return;
                 }
@@ -115,11 +119,13 @@ class HEMesh {
                 frontier[edge.id] = edge;
                 newEdges.push(edge);
             });
+            closedEdges.push(frontier[focusEdge.id]);
             delete frontier[focusEdge.id]
 
             yield {
                 face: focusEdge.twin.face,
-                newEdges: newEdges
+                newEdges: newEdges,
+                closedEdges: closedEdges
             };
 
             focusEdge = fetchFrontierCandidate();

@@ -6,7 +6,7 @@ var edgeColors = {
     interior: 0xff0000,
     frontier: 0x00ff00,
     boundary: 0x0000ff
-}
+};
 
 class HEFace {
     constructor(spec = {}) {
