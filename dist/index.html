@@ -37,26 +37,20 @@ var seedGeom = new THREE.BoxGeometry( 1, 1, 1 );
 var cube = new THREE.Mesh( seedGeom, material );
 var iterativeGeo = new THREE.Geometry();
 
-console.log(seedGeom.vertices);
-console.log(seedGeom.faces);
-
 var heMesh = new HEMesh({ geometry: seedGeom });
 heMesh.generateFaceArrows( scene, 0 );
 var iterator = heMesh.iterateFrontier();
 
-var useFaceFragments = true;
+var useFaceFragments = false;
 
 if (!useFaceFragments) {
     iterativeGeo.vertices = heMesh.vertices.map(function(v) {
-        return v;
+        return v.position;
     });
 }
 
-console.log(iterativeGeo.vertices);
-
 var expansion = iterator.next();
 while (!expansion.done) {
-
 
     if (useFaceFragments) {
         addSeparateFaceToGeometry(expansion.value.face, iterativeGeo);
@@ -66,14 +60,13 @@ while (!expansion.done) {
 
     expansion = iterator.next();
     if (expansion.done) {
-        console.log("terminal value: ", expansion.value);
     }
 }
 
 function addSeparateFaceToGeometry(face, geo) {
     var index = geo.vertices.length;
     face.edge.loopEdges(function(edge, initial){
-        geo.vertices.push(edge.vert.position);
+        geo.vertices.push(edge.vert.position.clone());
     });
 
     var a = index++;
@@ -87,9 +80,7 @@ function addFaceToGeometry(face, geo) {
         return edge.vert.index;
     });
     geo.faces.push( new THREE.Face3(f[0], f[1], f[2]) );
-
 }
-console.log(iterativeGeo.faces);
 
 var iterativeMesh = new THREE.Mesh( iterativeGeo, iterativeMat );
 
