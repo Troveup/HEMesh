@@ -35,7 +35,8 @@ var interiorColor = new THREE.Color( 0xff0000 );
 var frontierColor = new THREE.Color( 0x00ff00 );
 var boundaryColor = new THREE.Color( 0x0000ff );
 
-var seedGeom = new THREE.BoxGeometry( 1, 1, 1 );
+ // var seedGeom = new THREE.BoxGeometry( 1, 1, 1 );
+ var seedGeom = new THREE.PlaneGeometry( 1, 1, 1 );
 var cube = new THREE.Mesh( seedGeom, material );
 testHalfEdge( scene );
 

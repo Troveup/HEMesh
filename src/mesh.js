@@ -56,9 +56,9 @@ class HEMesh {
 
         // do linking after to simplify logic
         geo.faces.map(function(f) {
-            unmatched.linkEdgesBetween(f.a, f.b);
-            unmatched.linkEdgesBetween(f.b, f.c);
-            unmatched.linkEdgesBetween(f.c, f.a);
+            unmatched.linkEdgesBetween(f.a, f.b, HEEdge);
+            unmatched.linkEdgesBetween(f.b, f.c, HEEdge);
+            unmatched.linkEdgesBetween(f.c, f.a, HEEdge);
         });
     }
 
@@ -88,9 +88,13 @@ class HEMesh {
         }
 
         // add edges from the initial seed face
-        var newEdges = this.faces[0].edge.loopEdges(function(edge) {
+        var newEdges = [];
+        this.faces[0].edge.loopEdges(function(edge) {
+            if (edge.twin.isBoundary) {
+                return;
+            }
             frontier[edge.id] = edge;
-            return edge;
+            newEdges.push(edge);
         });
         var closedEdges = [];
 
@@ -106,8 +110,12 @@ class HEMesh {
             closedEdges = [];
             focusEdge.twin.loopEdges(function(edge, initial){
                 if (edge == initial) return;
+
+                if (edge.twin.isBoundary) {
+                    return;
+                }
                 
-                // TODO: if an edge in an expansion face is adjacent to frontier,
+                // if an edge in an expansion face is adjacent to frontier,
                 // then the frontier has folded in on itself and neither edge
                 // should remain in it
                 if (frontier[edge.twin.id]) {

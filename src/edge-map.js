@@ -29,9 +29,23 @@ class EdgeMap {
     }
 
     // TODO: set edge as boundary if twin doesn't exist (or create boundary edge to be connected later
-    linkEdgesBetween(u, v) {
+    linkEdgesBetween(u, v, edgeClass) {
         var edge0 = this.getEdge(u, v);
         var edge1 = this.getEdge(v, u);
+
+        if (!edge0 && !edge1) {
+            console.warn("No edges between vertices %s and %s", u, v);
+            return;
+        }
+
+        if (!edge0) {
+            edge0 = new edgeClass({ vert: edge1.next.vert });
+            edge0.isBoundary = true;
+        }
+        if (!edge1) {
+            edge1 = new edgeClass({ vert: edge0.next.vert });
+            edge1.isBoundary = true;
+        }
 
         edge0.twin = edge1;
         edge1.twin = edge0;
