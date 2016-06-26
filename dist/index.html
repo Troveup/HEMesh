@@ -5,7 +5,7 @@
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r78/three.js"></script>
 </head>
 <body>
-
+<button id="stepButton">Click Me</button>
 <script type="text/javascript" src="HEMesh.js"></script>
 <script>
 
@@ -23,7 +23,6 @@ var renderer = new THREE.WebGLRenderer();
 renderer.setSize( WIDTH, HEIGHT );
 document.body.appendChild( renderer.domElement );
 
-// var geometry = new THREE.PlaneGeometry( 2, 2, 1 );
 var material = new THREE.MeshBasicMaterial({
     wireframe: true,
     color: 0x00ff00
@@ -32,35 +31,83 @@ var iterativeMat = new THREE.MeshBasicMaterial({
     color: 0x0000ff
 });
 
-
 var seedGeom = new THREE.BoxGeometry( 1, 1, 1 );
 var cube = new THREE.Mesh( seedGeom, material );
-var iterativeGeo = new THREE.Geometry();
+testHalfEdge( scene );
 
-var heMesh = new HEMesh({ geometry: seedGeom });
-heMesh.generateFaceArrows( scene, 0 );
-var iterator = heMesh.iterateFrontier();
+function testHalfEdge( scene, iterationMax = 0) {
+    var iterativeGeo = new THREE.Geometry();
+    var heMesh = new HEMesh({ geometry: seedGeom });
+    heMesh.generateFaceArrows( scene, 0 );
 
-var useFaceFragments = false;
+    var iterator = heMesh.iterateFrontier();
 
-if (!useFaceFragments) {
-    iterativeGeo.vertices = heMesh.vertices.map(function(v) {
-        return v.position;
-    });
+    var waitForPrompting = true;
+    var useFaceFragments = false;
+    if (!useFaceFragments) {
+        iterativeGeo.vertices = heMesh.vertices.map(function(v) {
+            return v.position;
+        });
+    }
+
+    var expansion;
+    var counter = 0;
+    var button = document.getElementById('stepButton');
+    var iterativeMesh; //  = new THREE.Mesh( iterativeGeo, iterativeMat );
+    var iterativeMeshes = [];
+
+    function iterationLimitedStep() {
+        if (counter >= iterationMax && iterationMax > 0) {
+            return;
+        }
+        console.log("on %s of %s", counter, iterationMax);
+
+        expansion = stepIterator(iterator, iterativeGeo, useFaceFragments);
+
+        if (waitForPrompting) {
+            iterativeMesh = new THREE.Mesh( iterativeGeo.clone(), iterativeMat );
+            iterativeMeshes[counter] = iterativeMesh;
+            scene.add( iterativeMeshes[counter] );
+
+            if (expansion.done) {
+                counter++;
+                button.removeEventListener('click', iterationLimitedStep);
+                return;
+            }
+        }
+        counter++;
+    }
+
+    iterationLimitedStep();
+    if (waitForPrompting) {
+        button.addEventListener('click', iterationLimitedStep);
+    } else {
+        while (!expansion.done) {
+            iterationLimitedStep();
+        }
+    }
+
+    if (!waitForPrompting) {
+        iterativeMesh = new THREE.Mesh( iterativeGeo, iterativeMat );
+        scene.add( iterativeMesh );
+    }
 }
 
-var expansion = iterator.next();
-while (!expansion.done) {
+function stepIterator(iterator, geometry, duplicateVertices) {
+    var expansion = iterator.next();
+    // assume this means it just finished since the calling also loop monitors done
+    if (expansion.done) { 
+        console.log("terminal value: ", expansion.value);
+        return expansion;
+    }
 
-    if (useFaceFragments) {
-        addSeparateFaceToGeometry(expansion.value.face, iterativeGeo);
+    if (duplicateVertices) {
+        addSeparateFaceToGeometry(expansion.value.face, geometry);
     } else {
-        addFaceToGeometry(expansion.value.face, iterativeGeo);
+        addFaceToGeometry(expansion.value.face, geometry);
     }
 
-    expansion = iterator.next();
-    if (expansion.done) {
-    }
+    return expansion;
 }
 
 function addSeparateFaceToGeometry(face, geo) {
@@ -82,12 +129,9 @@ function addFaceToGeometry(face, geo) {
     geo.faces.push( new THREE.Face3(f[0], f[1], f[2]) );
 }
 
-var iterativeMesh = new THREE.Mesh( iterativeGeo, iterativeMat );
-
 var axisHelper = new THREE.AxisHelper( 5 );
 scene.add( axisHelper );
 scene.add( cube );
-scene.add( iterativeMesh );
 
 var render = function () {
     requestAnimationFrame( render );
