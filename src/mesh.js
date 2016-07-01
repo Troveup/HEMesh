@@ -20,6 +20,80 @@ class HEMesh {
         }
     }
 
+    closeHole(seedEdge) {
+        var currentEdge = seedEdge;
+        /*
+        do {
+            var isTriangle = currentEdge.next.next == currentEdge.prev;
+            currentEdge = this.insertBoundaryTriangle(currentEdge);
+        } while (!isTriangle);
+        this.closeTriangleBound(currentEdge);
+        */
+
+        while (currentEdge) {
+            var isTriangle = currentEdge.next.next == currentEdge.prev;
+            if (isTriangle) {
+                this.closeTriangleBound(currentEdge);
+                currentEdge = null;
+            } else {
+                currentEdge = this.insertBoundaryTriangle(currentEdge);
+            }
+        }
+
+        console.log("hole closed");
+    }
+
+    closeTriangleBound(curr) {
+        var newFace = new HEFace({ edge: curr });
+        curr.loopEdges(function(edge) {
+            edge.face = newFace;
+            edge.isBoundary = false;
+        });
+        this.faces.push(newFace);
+    }
+
+    /*
+    * @param curr - this and the curr.next edges will be connected to form a triangle
+    */
+    insertBoundaryTriangle(curr) {
+        var newFace = new HEFace();
+        var newInterior = new HEEdge();
+        var newBoundary = new HEEdge();
+
+        var newBoundPrev = curr.prev;
+        var newBoundNext = curr.next.next;
+
+        // fix references involving the new interior edge
+        newInterior.prev = curr.next;
+        newInterior.next = curr;
+        newInterior.vert = newBoundNext.vert
+        curr.prev = newInterior;
+        curr.next.next = newInterior;
+
+        // fix references involving the new boundary edge
+        newBoundary.prev = newBoundPrev;
+        newBoundary.next = newBoundNext;
+        newBoundary.vert = curr.vert;
+        newBoundPrev.next = newBoundary;
+        newBoundNext.prev = newBoundary;
+
+        newInterior.twin = newBoundary;
+        newBoundary.twin = newInterior;
+
+        newFace.edge = curr;
+        curr.loopEdges(function(edge) {
+            edge.face = newFace;
+        });
+
+        newBoundary.isBoundary = true;
+        delete curr.isBoundary;
+        delete curr.next.isBoundary;
+        this.edges.push(newInterior);
+        this.edges.push(newBoundary);
+        this.faces.push(newFace);
+        return newBoundary;
+    }
+
     parseGeometry(geo) {
         var unmatched = new EdgeMap();
         this.vertices = geo.vertices.map(function(position, i) {
@@ -73,12 +147,8 @@ class HEMesh {
         }.bind(this));
     }
 
-    generateFaceArrows(scene, faceCount) {
+    generateFaceArrows(scene) {
         this.faces.map(function(face, i) {
-            if (faceCount && i >= faceCount) {
-                return;
-            }
-
             face.generateDebugArrows().map(function(newArrow){
                 scene.add( newArrow );
             });
@@ -160,7 +230,8 @@ class HEMesh {
             }
 
             var active = initial;
-            do { // loop around boundary connecting next and prev, deleting from boundaryEdges
+            // loop around boundary connecting next and prev, deleting from boundaryEdges
+            do {
                 // pivot around the vertex the active half edge is pointed at
                 var internal = active.twin.prev;
                 while (!internal.twin.isBoundary) {
@@ -175,7 +246,12 @@ class HEMesh {
 
             this.boundaries.push(initial);
         }.bind(this));
+
+        this.boundaries.map(function(boundarySeed, i) {
+            this.closeHole(boundarySeed);
+        }.bind(this));
     }
+
 }
 
 module.exports = HEMesh;
