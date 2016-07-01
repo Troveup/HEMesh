@@ -20,28 +20,29 @@ class HEMesh {
         }
     }
 
-    closeHole(seedEdge) {
+    closeHoles() {
+        this.boundaries.map(function(boundarySeed) {
+            this.triangleFanFill(boundarySeed);
+        }.bind(this));
+    }
+
+    // creates edges from the seedEdge.vert to all the non-adjacent vertices
+    // on the boundary 
+    triangleFanFill(seedEdge) {
         var currentEdge = seedEdge;
-        /*
         do {
             var isTriangle = currentEdge.next.next == currentEdge.prev;
+            if (isTriangle) break;
+
             currentEdge = this.insertBoundaryTriangle(currentEdge);
         } while (!isTriangle);
         this.closeTriangleBound(currentEdge);
-        */
-
-        while (currentEdge) {
-            var isTriangle = currentEdge.next.next == currentEdge.prev;
-            if (isTriangle) {
-                this.closeTriangleBound(currentEdge);
-                currentEdge = null;
-            } else {
-                currentEdge = this.insertBoundaryTriangle(currentEdge);
-            }
-        }
-
-        console.log("hole closed");
     }
+
+    // TODO: maintain heuristic guided priority queue of edges for
+    // inserting the boundary triangles
+    // priorityFill(seedEdge) {}
+
 
     closeTriangleBound(curr) {
         var newFace = new HEFace({ edge: curr });
@@ -245,10 +246,6 @@ class HEMesh {
             } while (active.next != initial);
 
             this.boundaries.push(initial);
-        }.bind(this));
-
-        this.boundaries.map(function(boundarySeed, i) {
-            this.closeHole(boundarySeed);
         }.bind(this));
     }
 

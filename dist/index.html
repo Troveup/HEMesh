@@ -70,6 +70,7 @@ testHalfEdge( scene );
 function testHalfEdge( scene, iterationMax = 0) {
     var iterativeGeo = new THREE.Geometry();
     var heMesh = new HEMesh({ geometry: seedGeom });
+    heMesh.closeHoles();
     heMesh.generateFaceArrows( scene );
 
     var iterator = heMesh.iterateFrontier();
@@ -134,15 +135,12 @@ function stepIterator(iterator, geometry, duplicateVertices) {
     }
 
     expansion.value.newEdges.map(function(newFrontierEdge){
-        // console.log("new edge");
         newFrontierEdge.arrow.setColor( frontierColor );
     });
     expansion.value.closedEdges.map(function(closedEdge){
         if (closedEdge.twin.isBoundary) {
-            // console.log("boundary");
             closedEdge.arrow.setColor( boundaryColor );
         } else {
-            // console.log("non-bound");
             closedEdge.arrow.setColor( interiorColor );
         }
     });
