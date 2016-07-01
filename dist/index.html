@@ -35,19 +35,46 @@ var interiorColor = new THREE.Color( 0xff0000 );
 var frontierColor = new THREE.Color( 0x00ff00 );
 var boundaryColor = new THREE.Color( 0x0000ff );
 
- // var seedGeom = new THREE.BoxGeometry( 1, 1, 1 );
- var seedGeom = new THREE.PlaneGeometry( 1, 1, 1 );
-var cube = new THREE.Mesh( seedGeom, material );
+function generate2HoleCube() {
+    var geom = new THREE.Geometry(); 
+
+    geom.vertices = [
+        new THREE.Vector3(1.000000, -1.000000, -1.000000),
+        new THREE.Vector3(1.000000, -1.000000, 1.000000),
+        new THREE.Vector3(-1.000000, -1.000000, 1.000000),
+        new THREE.Vector3(-1.000000, -1.000000, -1.000000),
+        new THREE.Vector3(1.000000, 1.000000, -0.999999),
+        new THREE.Vector3(0.999999, 1.000000, 1.000001),
+        new THREE.Vector3(-1.000000, 1.000000, 1.000000),
+        new THREE.Vector3(-1.000000, 1.000000, -1.000000)
+    ];
+    geom.faces = [
+        new THREE.Face3(1, 4, 5),
+        new THREE.Face3(1, 0, 4),
+        new THREE.Face3(2, 5, 6),
+        new THREE.Face3(2, 1, 5),
+        new THREE.Face3(3, 6, 7),
+        new THREE.Face3(3, 2, 6),
+        new THREE.Face3(7, 0, 3),
+        new THREE.Face3(7, 4, 0)
+    ];
+    return geom;
+}
+
+// var seedGeom = new THREE.BoxGeometry( 1, 1, 1 );
+// var seedGeom = new THREE.PlaneGeometry( 1, 1, 1 );
+var seedGeom = generate2HoleCube();
+var seedMesh = new THREE.Mesh( seedGeom, material );
 testHalfEdge( scene );
 
 function testHalfEdge( scene, iterationMax = 0) {
     var iterativeGeo = new THREE.Geometry();
     var heMesh = new HEMesh({ geometry: seedGeom });
-    heMesh.generateFaceArrows( scene, 0 );
+    heMesh.generateFaceArrows( scene );
 
     var iterator = heMesh.iterateFrontier();
 
-    var waitForPrompting = true;
+    var waitForPrompting = false;
     var useFaceFragments = false;
     if (!useFaceFragments) {
         iterativeGeo.vertices = heMesh.vertices.map(function(v) {
@@ -65,7 +92,7 @@ function testHalfEdge( scene, iterationMax = 0) {
         if (counter >= iterationMax && iterationMax > 0) {
             return;
         }
-        console.log("on %s of %s", counter, iterationMax);
+        // console.log("on %s of %s", counter, iterationMax);
 
         expansion = stepIterator(iterator, iterativeGeo, useFaceFragments);
 
@@ -107,10 +134,17 @@ function stepIterator(iterator, geometry, duplicateVertices) {
     }
 
     expansion.value.newEdges.map(function(newFrontierEdge){
+        // console.log("new edge");
         newFrontierEdge.arrow.setColor( frontierColor );
     });
     expansion.value.closedEdges.map(function(closedEdge){
-        closedEdge.arrow.setColor( interiorColor );
+        if (closedEdge.twin.isBoundary) {
+            // console.log("boundary");
+            closedEdge.arrow.setColor( boundaryColor );
+        } else {
+            // console.log("non-bound");
+            closedEdge.arrow.setColor( interiorColor );
+        }
     });
 
     if (duplicateVertices) {
@@ -143,7 +177,7 @@ function addFaceToGeometry(face, geo) {
 
 var axisHelper = new THREE.AxisHelper( 5 );
 scene.add( axisHelper );
-scene.add( cube );
+scene.add( seedMesh );
 
 var render = function () {
     requestAnimationFrame( render );
