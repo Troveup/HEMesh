@@ -5,8 +5,8 @@ module.exports = {
     target: 'web',
     output: {
         path: path.resolve('dist'),
-        library: 'HEMesh',
-        filename: 'HEMesh.js'
+        library: 'HELib',
+        filename: 'HELib.js'
     },
     module: {
         loaders: [
@@ -17,6 +17,7 @@ module.exports = {
         ]
     },
     externals: {
-        three: 'THREE'
+        three: 'THREE',
+        "three-bsp": 'ThreeBSP'
     }
 };

@@ -6,7 +6,12 @@ var HEMesh = require("./src/mesh");
 var OrbitControls = require('three-orbit-controls')(THREE);
 THREE.OrbitControls = OrbitControls;
 
-module.exports = HEMesh;
+var CSGLib = require('./src/csg');
+
+function test() {
+}
+
+module.exports = { HEMesh, CSGLib };
 
 /*module.exports = (function(){
     var that = {};

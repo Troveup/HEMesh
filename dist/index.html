@@ -3,10 +3,11 @@
 <head>
 <title>DEV HalfEdge Mesh</title>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r78/three.js"></script>
+<script type="text/javascript" src="exported-ThreeCSG.js"></script>
 </head>
 <body>
 <button id="stepButton">Click Me</button>
-<script type="text/javascript" src="HEMesh.js"></script>
+<script type="text/javascript" src="HELib.js"></script>
 <script>
 
 var WIDTH = window.innerWidth * 0.8;
@@ -30,6 +31,7 @@ var material = new THREE.MeshBasicMaterial({
 var iterativeMat = new THREE.MeshBasicMaterial({
     color: 0x0000ff
 });
+var debugMat = new THREE.MeshNormalMaterial();
 
 var interiorColor = new THREE.Color( 0xff0000 );
 var frontierColor = new THREE.Color( 0x00ff00 );
@@ -61,15 +63,43 @@ function generate2HoleCube() {
     return geom;
 }
 
-// var seedGeom = new THREE.BoxGeometry( 1, 1, 1 );
-// var seedGeom = new THREE.PlaneGeometry( 1, 1, 1 );
-var seedGeom = generate2HoleCube();
-var seedMesh = new THREE.Mesh( seedGeom, material );
-testHalfEdge( scene );
+
+// testHalfEdge( scene );
+testCSG( scene );
+
+
+function testCSG( scene ) {
+    //var geometry1 = new THREE.SphereGeometry( 5, 32, 32 );
+    //var geometry2 = new THREE.SphereGeometry( 5, 32, 32 );
+
+    var geometry1 = new THREE.BoxGeometry( 2, 2, 2 );
+    var geometry2 = new THREE.BoxGeometry( 2, 2, 2 );
+
+    var mesh1 = new THREE.Mesh( geometry1, material );
+    var mesh2 = new THREE.Mesh( geometry2, material );
+    mesh1.position.set(-0.5,-0.5,-0.5);
+    mesh2.position.set( 0.5, 0.5, 0.5);
+
+    var joinedMesh = HELib.CSGLib.combineMeshes(mesh1, mesh2);
+
+    // verify csg result
+    var vertCount = joinedMesh.geometry.vertices.length;
+    var expectedVerts = 32;
+    console.log("Expected result with %s, got %s ", expectedVerts, vertCount);
+
+    scene.add( joinedMesh );
+}
 
 function testHalfEdge( scene, iterationMax = 0) {
+    // var seedGeom = new THREE.BoxGeometry( 1, 1, 1 );
+    // var seedGeom = new THREE.PlaneGeometry( 1, 1, 1 );
+    var seedGeom = generate2HoleCube();
+    var seedMesh = new THREE.Mesh( seedGeom, material );
+    scene.add( seedMesh );
+
+
     var iterativeGeo = new THREE.Geometry();
-    var heMesh = new HEMesh({ geometry: seedGeom });
+    var heMesh = new HELib.HEMesh({ geometry: seedGeom });
     heMesh.closeHoles();
     heMesh.generateFaceArrows( scene );
 
@@ -175,7 +205,6 @@ function addFaceToGeometry(face, geo) {
 
 var axisHelper = new THREE.AxisHelper( 5 );
 scene.add( axisHelper );
-scene.add( seedMesh );
 
 var render = function () {
     requestAnimationFrame( render );

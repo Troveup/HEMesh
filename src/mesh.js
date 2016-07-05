@@ -43,7 +43,6 @@ class HEMesh {
     // inserting the boundary triangles
     // priorityFill(seedEdge) {}
 
-
     closeTriangleBound(curr) {
         var newFace = new HEFace({ edge: curr });
         curr.loopEdges(function(edge) {
