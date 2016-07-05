@@ -69,16 +69,22 @@ testCSG( scene );
 
 
 function testCSG( scene ) {
-    //var geometry1 = new THREE.SphereGeometry( 5, 32, 32 );
-    //var geometry2 = new THREE.SphereGeometry( 5, 32, 32 );
+    var geometry1 = new THREE.SphereGeometry( 2, 16, 16 );
+    var geometry2 = new THREE.SphereGeometry( 2, 16, 16 );
 
-    var geometry1 = new THREE.BoxGeometry( 2, 2, 2 );
-    var geometry2 = new THREE.BoxGeometry( 2, 2, 2 );
+    // var geometry1 = new THREE.BoxGeometry( 2, 2, 2 );
+    // var geometry2 = new THREE.BoxGeometry( 2, 2, 2 );
 
-    var mesh1 = new THREE.Mesh( geometry1, material );
-    var mesh2 = new THREE.Mesh( geometry2, material );
-    mesh1.position.set(-0.5,-0.5,-0.5);
-    mesh2.position.set( 0.5, 0.5, 0.5);
+    var mesh1 = new THREE.Mesh( geometry1, debugMat );
+    var mesh2 = new THREE.Mesh( geometry2, debugMat );
+
+    // sphere positions
+    mesh1.position.set(  1, 1, 1 );
+    mesh2.position.set( -1,-1,-1 );
+
+    // box positions
+    // mesh1.position.set(-0.5,-0.5,-0.5);
+    // mesh2.position.set( 0.5, 0.5, 0.5);
 
     var joinedMesh = HELib.CSGLib.combineMeshes(mesh1, mesh2);
 
