@@ -3,7 +3,8 @@
 // currently using this lib, purportedly a wrapper around the evanw/csg.js functionality
 // however the code looks pretty different, probably forked a while ago
 // https://github.com/chandlerprall/ThreeCSG
-var ThreeBSP = require("three-bsp");
+var THREE = require("three");
+var ThreeBSP = require("three-js-csg")(THREE);
 
 // candidate for further testing, this is the model js implementation
 // https://github.com/evanw/csg.js

@@ -7,7 +7,7 @@ console.log("getting latest hemesh index.js");
 var OrbitControls = require('three-orbit-controls')(THREE);
 THREE.OrbitControls = OrbitControls;
 
-var CSGLib = require('./src/csg');
+//var CSGLib = require('./src/csg');
 
 var material = new THREE.MeshBasicMaterial({
     wireframe: true,
@@ -28,7 +28,7 @@ function exportToObj( scene ) {
     return exporter.parse( scene );
 }
 
-function testCSG( scene, container ) {
+/*function testCSG( scene, container ) {
     var geometry1 = new THREE.SphereGeometry( 2, 16, 16 );
     var geometry2 = new THREE.SphereGeometry( 2, 16, 16 );
 
@@ -61,7 +61,7 @@ function testCSG( scene, container ) {
     //} else {
         //container.innerHTML = objString; // .split( '\n' ).join( '<br />' );
     //}
-}
+}*/
 
 function testHalfEdge( scene, iterationMax = 0) {
     // var seedGeom = new THREE.BoxGeometry( 1, 1, 1 );
@@ -202,5 +202,6 @@ function generate2HoleCube() {
     return geom;
 }
 
-module.exports = { HEMesh, CSGLib, testHalfEdge, testCSG };
+//module.exports = { HEMesh, CSGLib, testHalfEdge, testCSG };
+module.exports = { HEMesh, testHalfEdge };
 

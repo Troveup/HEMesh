@@ -16,6 +16,8 @@
     "webpack-dev-server": "^1.14.1"
   },
   "dependencies": {
-    "es6-map": "^0.1.4"
+    "es6-map": "^0.1.4",
+    "three": "^0.73.2",
+    "three-js-csg": "^72.0.0"
   }
 }
